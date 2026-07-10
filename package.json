@@ -1,0 +1,35 @@
+{
+  "name": "conquestbet",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18",
+    "react-dom": "^18",
+    "next": "14.2.35",
+    "@coral-xyz/anchor": "^0.31.1",
+    "@solana/web3.js": "^1.95.3"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.35",
+    "mocha": "^10.7.3",
+    "ts-mocha": "^10.0.0",
+    "chai": "^4.5.0",
+    "@types/mocha": "^10.0.7",
+    "@types/chai": "^4.3.19"
+  }
+}
