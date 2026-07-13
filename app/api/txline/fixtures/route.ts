@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
 
-// TODO: replace with a real proxy to TxLINE's GET /fixtures endpoint using
-// lib/txline.ts's getFixtures(), which reads TXLINE_API_TOKEN/TXLINE_JWT
-// from process.env (server-only — never exposed to the client).
+import { getFixtures } from "@/lib/txline";
+
 export async function GET() {
-  return NextResponse.json(
-    {
-      status: "not_implemented",
-      todo: "proxy TxLINE GET /fixtures using TXLINE_API_TOKEN/TXLINE_JWT from process.env (server-only)",
-      data: [],
-    },
-    { status: 501 },
-  );
+  try {
+    const fixtures = await getFixtures();
+    return NextResponse.json({ data: fixtures });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to fetch fixtures" }, { status: 502 });
+  }
 }

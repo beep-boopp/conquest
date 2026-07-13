@@ -1,18 +1,20 @@
+import { openScoresStream } from "@/lib/txline";
+
 export const dynamic = "force-dynamic";
 
-// TODO: replace with a real SSE proxy to TxLINE's live scores stream. On the
-// upstream TxLINE connection, pipe each event through controller.enqueue()
-// as it arrives. Auth (TXLINE_API_TOKEN/TXLINE_JWT) is read server-side only
-// via lib/txline.ts — never exposed to the client.
-export async function GET() {
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(": connected\n\n"));
-      controller.close();
-    },
-  });
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const fixtureId = searchParams.get("fixtureId") ?? undefined;
+  const lastEventId = request.headers.get("Last-Event-ID") ?? undefined;
 
-  return new Response(stream, {
+  let upstream: Response;
+  try {
+    upstream = await openScoresStream(fixtureId, lastEventId);
+  } catch (e) {
+    return new Response(e instanceof Error ? e.message : "Failed to open TxLINE scores stream", { status: 502 });
+  }
+
+  return new Response(upstream.body, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",

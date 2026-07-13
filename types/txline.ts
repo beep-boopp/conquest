@@ -4,7 +4,7 @@ export interface TxLineFixture {
   homeTeam: string;
   awayTeam: string;
   kickoffTime: string;
-  status: string;
+  competition: string;
 }
 
 // TODO: define TxLineScore and TxLineOdds shapes once TxLINE's API docs
