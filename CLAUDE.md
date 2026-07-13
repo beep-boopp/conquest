@@ -46,3 +46,9 @@ This is NOT a global prediction market. It's a private social game between frien
 - Upgrade authority / deploy keypair: `26Mm1U5z82i8GfWcMufbVw6WSMcQc4oSPhrLEprYrYPD` (~3.27 SOL remaining after deploy).
 - Toolchain actually used: `anchor-cli`/`anchor-lang` 0.31.1, Solana CLI 4.1.1 (platform-tools v1.54, needed for its newer bundled rustc to support a transitive dependency's `edition2024` requirement). Both are pinned explicitly in `Anchor.toml`'s `[toolchain]` (`anchor_version`, `solana_version`) so `anchor build`/`avm` don't silently downgrade back to an older, incompatible pairing.
 - To rebuild/redeploy: `anchor build` then `anchor deploy --provider.cluster devnet`.
+
+## Privy Setup
+- Auth is wired up (`components/PrivyProviders.tsx`, `components/LoginButton.tsx`, `lib/use-conquest-actions.ts`) but needs a real Privy app to actually log in.
+- Create an app at the Privy dashboard (Solana embedded wallets enabled, Google login method enabled), then set in `.env.local`: `NEXT_PUBLIC_PRIVY_APP_ID=<your app id>`.
+- Until that's set, `PrivyProviders` renders a plain "not configured" message instead of crashing — Privy's SDK validates the App ID synchronously during server render, so an empty/invalid value 500s every page rather than only failing at the login button.
+- All 6 wager-loop mutations (create/join/propose/accept/resolve/claim) sign client-side via the logged-in user's Privy embedded Solana wallet (`lib/use-conquest-actions.ts`), not a server-held keypair. `lib/anchor-client.ts`'s instruction functions accept `Keypair | AnchorWallet` so the same functions serve both the Privy path and the server-side test-wallet scripts (`lib/test-wallets.ts`, kept for scripts only — no longer imported by any component).
