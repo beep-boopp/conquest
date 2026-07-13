@@ -15,11 +15,24 @@ export function getConnection(): Connection {
 }
 
 /**
+ * Anything AnchorProvider can sign with — a raw Keypair (server-side
+ * scripts, lib/test-wallets.ts) or an already Wallet-shaped object (e.g. a
+ * Privy embedded wallet adapter — see lib/use-conquest-actions.ts). Every
+ * instruction function below accepts either, so swapping the signing
+ * backend never touches this file.
+ */
+export interface AnchorWallet {
+  publicKey: PublicKey;
+  signTransaction<T extends Transaction | VersionedTransaction>(tx: T): Promise<T>;
+  signAllTransactions<T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]>;
+}
+
+/**
  * Minimal AnchorProvider-compatible wallet wrapping a raw Keypair. Avoids
  * depending on @coral-xyz/anchor's own `Wallet` export, whose browser/node
  * build resolution is ambiguous under Next.js's bundler.
  */
-class KeypairWallet {
+class KeypairWallet implements AnchorWallet {
   constructor(readonly payer: Keypair) {}
 
   get publicKey(): PublicKey {
@@ -40,14 +53,14 @@ class KeypairWallet {
   }
 }
 
-/**
- * Builds a Program client signing as `keypair`. For real usage this
- * keypair comes from a hardcoded devnet test wallet (see lib/test-wallets.ts)
- * until Privy's embedded wallet replaces it — the call sites below only
- * depend on getting *a* Keypair, so that swap doesn't touch this file.
- */
-export function getProgram(keypair: Keypair): Program<ConquestBet> {
-  const provider = new AnchorProvider(getConnection(), new KeypairWallet(keypair), { commitment: "confirmed" });
+function isKeypair(signer: Keypair | AnchorWallet): signer is Keypair {
+  return signer instanceof Keypair;
+}
+
+/** Builds a Program client signing as `signer` — a raw Keypair or any AnchorWallet-shaped object. */
+export function getProgram(signer: Keypair | AnchorWallet): Program<ConquestBet> {
+  const wallet = isKeypair(signer) ? new KeypairWallet(signer) : signer;
+  const provider = new AnchorProvider(getConnection(), wallet, { commitment: "confirmed" });
   return new Program<ConquestBet>(idl, provider);
 }
 
@@ -195,7 +208,10 @@ export async function fetchRoomsForPlayer(player: PublicKey): Promise<Room[]> {
 // ---- Instructions: mirror programs/conquest-bet/src/instructions/*.rs ----
 
 /** Mirrors create_room. Returns the tx signature and the new room's address. */
-export async function createRoom(creator: Keypair, roomId: number): Promise<{ signature: string; roomAddress: PublicKey }> {
+export async function createRoom(
+  creator: Keypair | AnchorWallet,
+  roomId: number,
+): Promise<{ signature: string; roomAddress: PublicKey }> {
   const program = getProgram(creator);
   const roomAddress = deriveRoomAddress(creator.publicKey, roomId);
 
@@ -213,7 +229,7 @@ export async function createRoom(creator: Keypair, roomId: number): Promise<{ si
 }
 
 /** Mirrors join_room. */
-export async function joinRoom(player: Keypair, roomAddress: PublicKey): Promise<string> {
+export async function joinRoom(player: Keypair | AnchorWallet, roomAddress: PublicKey): Promise<string> {
   const program = getProgram(player);
   return program.methods
     .joinRoom()
@@ -233,7 +249,7 @@ export interface ProposeWagerParams {
 
 /** Mirrors propose_wager. Returns the tx signature and the new wager's address. */
 export async function proposeWager(
-  proposer: Keypair,
+  proposer: Keypair | AnchorWallet,
   params: ProposeWagerParams,
 ): Promise<{ signature: string; wagerAddress: PublicKey }> {
   const program = getProgram(proposer);
@@ -268,7 +284,7 @@ export interface AcceptWagerParams {
 }
 
 /** Mirrors accept_wager. */
-export async function acceptWager(opponent: Keypair, params: AcceptWagerParams): Promise<string> {
+export async function acceptWager(opponent: Keypair | AnchorWallet, params: AcceptWagerParams): Promise<string> {
   const program = getProgram(opponent);
   return program.methods
     .acceptWager(params.predictedOutcome, new BN(params.landStake))
@@ -293,7 +309,7 @@ export interface ResolveWagerParams {
  * we pass our own programId as an inert filler until the real CPI accounts
  * are wired up.
  */
-export async function resolveWager(resolver: Keypair, params: ResolveWagerParams): Promise<string> {
+export async function resolveWager(resolver: Keypair | AnchorWallet, params: ResolveWagerParams): Promise<string> {
   const program = getProgram(resolver);
   return program.methods
     .resolveWager(params.matchResult)
@@ -313,7 +329,7 @@ export interface ClaimVictoryParams {
 }
 
 /** Mirrors claim_victory. */
-export async function claimVictory(claimant: Keypair, params: ClaimVictoryParams): Promise<string> {
+export async function claimVictory(claimant: Keypair | AnchorWallet, params: ClaimVictoryParams): Promise<string> {
   const program = getProgram(claimant);
   return program.methods
     .claimVictory(params.tournamentComplete)
