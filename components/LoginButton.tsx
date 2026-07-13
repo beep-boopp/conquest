@@ -1,19 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 
 export function LoginButton() {
-  const router = useRouter();
+  const { ready, login } = usePrivy();
 
   function handleClick() {
-    // TODO: call Privy's login() once @privy-io/react-auth is installed —
-    // Google login -> embedded Solana wallet. Until then, skip straight to
-    // the dashboard — identity is simulated via the WalletSelector there.
-    router.push("/dashboard");
+    login({ loginMethods: ["google"] });
   }
 
   return (
-    <button onClick={handleClick} className="rounded-md bg-black px-4 py-2 text-white">
+    <button
+      onClick={handleClick}
+      disabled={!ready}
+      className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
+    >
       Sign in with Google
     </button>
   );
