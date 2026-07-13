@@ -2,29 +2,35 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { getRoomAction, getTestWalletAddresses, getWagersForRoomAction } from "@/app/actions";
+import { usePrivy } from "@privy-io/react-auth";
+import { useRouter } from "next/navigation";
+
+import { getRoomAction, getWagersForRoomAction } from "@/app/actions";
 import { RoomView } from "@/components/RoomView";
-import { WalletSelector } from "@/components/WalletSelector";
-import { useActiveWallet } from "@/lib/use-active-wallet";
-import { Room, TestWalletName, Wager } from "@/types";
+import { useConquestActions } from "@/lib/use-conquest-actions";
+import { truncateAddress } from "@/lib/utils";
+import { Room, Wager } from "@/types";
 
 export default function RoomPage({ params }: { params: { roomAddress: string } }) {
-  const [activeWallet] = useActiveWallet();
+  const { ready, authenticated, logout } = usePrivy();
+  const { walletAddress } = useConquestActions();
   const [room, setRoom] = useState<Room | null>(null);
   const [wagers, setWagers] = useState<Wager[]>([]);
-  const [addresses, setAddresses] = useState<Record<TestWalletName, string> | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (ready && !authenticated) router.push("/");
+  }, [ready, authenticated, router]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const [roomResult, wagersResult, addressesResult] = await Promise.all([
+    const [roomResult, wagersResult] = await Promise.all([
       getRoomAction(params.roomAddress),
       getWagersForRoomAction(params.roomAddress),
-      getTestWalletAddresses(),
     ]);
     setRoom(roomResult);
     setWagers(wagersResult);
-    setAddresses(addressesResult);
     setLoading(false);
   }, [params.roomAddress]);
 
@@ -32,26 +38,33 @@ export default function RoomPage({ params }: { params: { roomAddress: string } }
     refresh();
   }, [refresh]);
 
+  if (!ready || !authenticated) {
+    return (
+      <main className="mx-auto max-w-4xl p-8">
+        <p className="text-sm text-gray-500">Loading...</p>
+      </main>
+    );
+  }
+
   return (
     <main className="mx-auto max-w-4xl p-8">
       <div className="mb-2 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Room</h1>
-        <WalletSelector />
+        <div className="flex items-center gap-3 text-sm">
+          {walletAddress && <span className="text-gray-500">{truncateAddress(walletAddress)}</span>}
+          <button onClick={() => logout()} className="rounded border px-3 py-1">
+            Log out
+          </button>
+        </div>
       </div>
       <p className="mb-6 break-all text-xs text-gray-400">{params.roomAddress}</p>
 
       {loading ? (
         <p className="text-sm text-gray-500">Loading room...</p>
-      ) : !room || !addresses ? (
+      ) : !room ? (
         <p className="text-sm text-red-600">Room not found.</p>
       ) : (
-        <RoomView
-          room={room}
-          wagers={wagers}
-          activeWallet={activeWallet}
-          activeAddress={addresses[activeWallet]}
-          onChange={refresh}
-        />
+        <RoomView room={room} wagers={wagers} activeAddress={walletAddress} onChange={refresh} />
       )}
     </main>
   );

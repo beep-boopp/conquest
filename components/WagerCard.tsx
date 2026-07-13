@@ -2,21 +2,20 @@
 
 import { useState } from "react";
 
-import { acceptWagerAction, resolveWagerAction } from "@/app/actions";
 import { PREDICTION_OUTCOME_OPTIONS, PREDICTION_TYPE_LABELS } from "@/lib/prediction-outcomes";
-import { TestWalletName, Wager, WagerStatus } from "@/types";
+import { useConquestActions } from "@/lib/use-conquest-actions";
+import { Wager, WagerStatus } from "@/types";
 
 export function WagerCard({
   wager,
-  activeWallet,
   activeAddress,
   onChange,
 }: {
   wager: Wager;
-  activeWallet: TestWalletName;
   activeAddress: string | null;
   onChange: () => void;
 }) {
+  const { acceptWager, resolveWager } = useConquestActions();
   const [accepting, setAccepting] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [predictedOutcome, setPredictedOutcome] = useState<number | null>(null);
@@ -37,7 +36,7 @@ export function WagerCard({
     setAccepting(true);
     setError(null);
     try {
-      await acceptWagerAction(activeWallet, {
+      await acceptWager({
         roomAddress: wager.room,
         wagerAddress: wager.address,
         predictedOutcome,
@@ -59,7 +58,7 @@ export function WagerCard({
     setResolving(true);
     setError(null);
     try {
-      await resolveWagerAction(activeWallet, {
+      await resolveWager({
         roomAddress: wager.room,
         wagerAddress: wager.address,
         matchResult,

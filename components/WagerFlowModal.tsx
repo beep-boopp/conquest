@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { proposeWagerAction } from "@/app/actions";
-import { MOCK_FIXTURES } from "@/lib/mock-fixtures";
 import { PREDICTION_OUTCOME_OPTIONS, PREDICTION_TYPE_LABELS } from "@/lib/prediction-outcomes";
-import { Player, PredictionType, TestWalletName } from "@/types";
+import { useConquestActions } from "@/lib/use-conquest-actions";
+import { Player, PredictionType, TxLineFixture } from "@/types";
+
+/** Fixtures from the start of today onwards — excludes historical/finished matches. */
+function isUpcoming(fixture: TxLineFixture): boolean {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  return new Date(fixture.kickoffTime) >= startOfToday;
+}
 
 export function WagerFlowModal({
   open,
   onClose,
   onCreated,
   roomAddress,
-  activeWallet,
   players,
   selfAddress,
 }: {
@@ -20,11 +25,14 @@ export function WagerFlowModal({
   onClose: () => void;
   onCreated: () => void;
   roomAddress: string;
-  activeWallet: TestWalletName;
   players: Player[];
   selfAddress: string | null;
 }) {
-  const [fixtureId, setFixtureId] = useState(MOCK_FIXTURES[0].fixtureId);
+  const { proposeWager } = useConquestActions();
+  const [fixtures, setFixtures] = useState<TxLineFixture[]>([]);
+  const [fixturesLoading, setFixturesLoading] = useState(true);
+  const [fixturesError, setFixturesError] = useState<string | null>(null);
+  const [fixtureId, setFixtureId] = useState<string>("");
   const [predictionType, setPredictionType] = useState<PredictionType>(PredictionType.MatchWinner);
   const [predictedOutcome, setPredictedOutcome] = useState<number>(0);
   const [opponent, setOpponent] = useState<string>("");
@@ -32,12 +40,32 @@ export function WagerFlowModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!open) return;
+    setFixturesLoading(true);
+    setFixturesError(null);
+    fetch("/api/txline/fixtures")
+      .then((res) => res.json())
+      .then((body: { data?: TxLineFixture[]; error?: string }) => {
+        if (body.error) throw new Error(body.error);
+        const upcoming = (body.data ?? []).filter(isUpcoming);
+        setFixtures(upcoming);
+        setFixtureId(upcoming[0]?.fixtureId ?? "");
+      })
+      .catch((e) => setFixturesError(e instanceof Error ? e.message : "Failed to load fixtures"))
+      .finally(() => setFixturesLoading(false));
+  }, [open]);
+
   if (!open) return null;
 
   const opponentOptions = players.filter((p) => p.pubkey !== selfAddress);
   const options = PREDICTION_OUTCOME_OPTIONS[predictionType];
 
   async function handleSubmit() {
+    if (!fixtureId) {
+      setError("Pick a match.");
+      return;
+    }
     if (!opponent) {
       setError("Pick an opponent.");
       return;
@@ -45,7 +73,7 @@ export function WagerFlowModal({
     setSubmitting(true);
     setError(null);
     try {
-      await proposeWagerAction(activeWallet, {
+      await proposeWager({
         roomAddress,
         wagerId: Date.now(),
         opponent,
@@ -70,17 +98,25 @@ export function WagerFlowModal({
 
         <div className="mb-3">
           <label className="mb-1 block text-xs text-gray-500">Match</label>
-          <select
-            value={fixtureId}
-            onChange={(e) => setFixtureId(e.target.value)}
-            className="w-full rounded border px-2 py-1 text-sm"
-          >
-            {MOCK_FIXTURES.map((f) => (
-              <option key={f.fixtureId} value={f.fixtureId}>
-                {f.homeTeam} vs {f.awayTeam}
-              </option>
-            ))}
-          </select>
+          {fixturesLoading ? (
+            <p className="text-sm text-gray-500">Loading fixtures...</p>
+          ) : fixturesError ? (
+            <p className="text-sm text-red-600">{fixturesError}</p>
+          ) : fixtures.length === 0 ? (
+            <p className="text-sm text-gray-500">No upcoming fixtures.</p>
+          ) : (
+            <select
+              value={fixtureId}
+              onChange={(e) => setFixtureId(e.target.value)}
+              className="w-full rounded border px-2 py-1 text-sm"
+            >
+              {fixtures.map((f) => (
+                <option key={f.fixtureId} value={f.fixtureId}>
+                  {f.competition}: {f.homeTeam} vs {f.awayTeam} — {new Date(f.kickoffTime).toLocaleString()}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="mb-3">

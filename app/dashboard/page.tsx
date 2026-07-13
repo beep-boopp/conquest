@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 
-import { createRoomAction, getRoomsForWalletAction } from "@/app/actions";
+import { getRoomsForWalletAction } from "@/app/actions";
 import { RoomList } from "@/components/RoomList";
-import { WalletSelector } from "@/components/WalletSelector";
-import { useActiveWallet } from "@/lib/use-active-wallet";
+import { useConquestActions } from "@/lib/use-conquest-actions";
+import { truncateAddress } from "@/lib/utils";
 import { Room } from "@/types";
 
 export default function DashboardPage() {
-  const [activeWallet] = useActiveWallet();
+  const { ready, authenticated, logout } = usePrivy();
+  const { walletAddress, createRoom } = useConquestActions();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -19,18 +22,23 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
+    if (ready && !authenticated) router.push("/");
+  }, [ready, authenticated, router]);
+
+  useEffect(() => {
+    if (!walletAddress) return;
     setLoading(true);
-    getRoomsForWalletAction(activeWallet)
+    getRoomsForWalletAction(walletAddress)
       .then(setRooms)
       .finally(() => setLoading(false));
-  }, [activeWallet]);
+  }, [walletAddress]);
 
   async function handleCreateRoom() {
     setCreating(true);
     setError(null);
     try {
       const roomId = Date.now();
-      const { roomAddress } = await createRoomAction(activeWallet, roomId);
+      const { roomAddress } = await createRoom(roomId);
       router.push(`/room/${roomAddress}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to create room");
@@ -43,11 +51,24 @@ export default function DashboardPage() {
     if (joinAddress.trim()) router.push(`/room/${joinAddress.trim()}`);
   }
 
+  if (!ready || !authenticated) {
+    return (
+      <main className="mx-auto max-w-4xl p-8">
+        <p className="text-sm text-gray-500">Loading...</p>
+      </main>
+    );
+  }
+
   return (
     <main className="mx-auto max-w-4xl p-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <WalletSelector />
+        <div className="flex items-center gap-3 text-sm">
+          {walletAddress && <span className="text-gray-500">{truncateAddress(walletAddress)}</span>}
+          <button onClick={() => logout()} className="rounded border px-3 py-1">
+            Log out
+          </button>
+        </div>
       </div>
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
@@ -55,7 +76,7 @@ export default function DashboardPage() {
       <section className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center">
         <button
           onClick={handleCreateRoom}
-          disabled={creating}
+          disabled={creating || !walletAddress}
           className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
         >
           {creating ? "Creating..." : "Create Room"}

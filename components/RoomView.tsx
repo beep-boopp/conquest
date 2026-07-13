@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 
-import { claimVictoryAction, joinRoomAction } from "@/app/actions";
-import { Room, RoomStatus, TestWalletName, Wager } from "@/types";
+import { useConquestActions } from "@/lib/use-conquest-actions";
+import { Room, RoomStatus, Wager } from "@/types";
 
+import { InviteLink } from "./InviteLink";
 import { PlayerList } from "./PlayerList";
 import { WagerCard } from "./WagerCard";
 import { WagerFlowModal } from "./WagerFlowModal";
@@ -12,16 +13,15 @@ import { WagerFlowModal } from "./WagerFlowModal";
 export function RoomView({
   room,
   wagers,
-  activeWallet,
   activeAddress,
   onChange,
 }: {
   room: Room;
   wagers: Wager[];
-  activeWallet: TestWalletName;
   activeAddress: string | null;
   onChange: () => void;
 }) {
+  const { joinRoom, claimVictory } = useConquestActions();
   const [modalOpen, setModalOpen] = useState(false);
   const [joining, setJoining] = useState(false);
   const [claiming, setClaiming] = useState(false);
@@ -34,7 +34,7 @@ export function RoomView({
     setJoining(true);
     setError(null);
     try {
-      await joinRoomAction(activeWallet, room.address);
+      await joinRoom(room.address);
       onChange();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to join room");
@@ -47,7 +47,7 @@ export function RoomView({
     setClaiming(true);
     setError(null);
     try {
-      await claimVictoryAction(activeWallet, { roomAddress: room.address, tournamentComplete: true });
+      await claimVictory({ roomAddress: room.address, tournamentComplete: true });
       onChange();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to claim victory");
@@ -59,6 +59,8 @@ export function RoomView({
   return (
     <div className="grid gap-6">
       {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {isActive && <InviteLink roomAddress={room.address} />}
 
       <section className="flex flex-wrap items-center gap-3">
         {!isMember && !room.started && isActive && (
@@ -99,13 +101,7 @@ export function RoomView({
             <p className="text-sm text-gray-500">No wagers yet.</p>
           ) : (
             wagers.map((wager) => (
-              <WagerCard
-                key={wager.address}
-                wager={wager}
-                activeWallet={activeWallet}
-                activeAddress={activeAddress}
-                onChange={onChange}
-              />
+              <WagerCard key={wager.address} wager={wager} activeAddress={activeAddress} onChange={onChange} />
             ))
           )}
         </div>
@@ -116,7 +112,6 @@ export function RoomView({
         onClose={() => setModalOpen(false)}
         onCreated={onChange}
         roomAddress={room.address}
-        activeWallet={activeWallet}
         players={room.players}
         selfAddress={activeAddress}
       />
