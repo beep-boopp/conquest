@@ -34,4 +34,16 @@ pub enum ConquestBetError {
 
     #[msg("Room has already been completed.")]
     RoomAlreadyCompleted,
+
+    #[msg("Team must be 0 (England), 1 (Argentina), or 2 (Spain).")]
+    InvalidTeam,
+
+    #[msg("This wallet has already placed a Miku Cup bet.")]
+    AlreadyBetOnMikuCup,
+
+    #[msg("Miku Cup has reached its maximum number of bettors.")]
+    MikuCupFull,
+
+    #[msg("Miku Cup has already been resolved.")]
+    MikuCupAlreadyResolved,
 }

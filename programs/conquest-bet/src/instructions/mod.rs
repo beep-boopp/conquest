@@ -2,12 +2,18 @@ pub mod accept_wager;
 pub mod claim_victory;
 pub mod create_room;
 pub mod join_room;
+pub mod place_miku_bet;
 pub mod propose_wager;
+pub mod reset_miku_cup;
+pub mod resolve_miku_cup;
 pub mod resolve_wager;
 
 pub use accept_wager::*;
 pub use claim_victory::*;
 pub use create_room::*;
 pub use join_room::*;
+pub use place_miku_bet::*;
 pub use propose_wager::*;
+pub use reset_miku_cup::*;
+pub use resolve_miku_cup::*;
 pub use resolve_wager::*;

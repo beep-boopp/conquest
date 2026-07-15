@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::constants::MAX_PLAYERS_PER_ROOM;
+use crate::constants::{MAX_MIKU_BETTORS, MAX_PLAYERS_PER_ROOM};
 
 /// A private room where 2-5 friends compete for land over the tournament.
 ///
@@ -122,4 +122,46 @@ pub struct RoomCompleted {
     pub room: Pubkey,
     pub winner: Pubkey,
     pub winner_land: u64,
+}
+
+/// Global singleton pool for the "Miku Cup" side-bet: any player can lock a
+/// fixed MIKU_BET_AMOUNT into one of three teams, independent of any Room.
+/// This is a symbolic stake, not a deduction from a Room's land_balances —
+/// there is no global per-wallet land balance anywhere else in this program,
+/// so Miku Cup intentionally doesn't touch real Room land. `bettors` /
+/// `bettor_teams` are parallel fixed-size arrays (same pattern as
+/// Room::players / Room::land_balances) indexed together and sliced to
+/// `bettor_count`.
+#[account]
+pub struct MikuPool {
+    pub total_england: u64,
+    pub total_argentina: u64,
+    pub total_spain: u64,
+    /// 0 = England, 1 = Argentina, 2 = Spain. Leading team by total stake
+    /// pre-resolution; locked to the winner once is_resolved is true.
+    pub current_holder: u8,
+    pub is_resolved: bool,
+    pub total_pool: u64,
+    pub bettors: [Pubkey; MAX_MIKU_BETTORS],
+    pub bettor_teams: [u8; MAX_MIKU_BETTORS],
+    pub bettor_count: u8,
+    pub bump: u8,
+}
+
+impl MikuPool {
+    pub const LEN: usize = 8 // discriminator
+        + 8 // total_england
+        + 8 // total_argentina
+        + 8 // total_spain
+        + 1 // current_holder
+        + 1 // is_resolved
+        + 8 // total_pool
+        + (32 * MAX_MIKU_BETTORS) // bettors
+        + MAX_MIKU_BETTORS // bettor_teams
+        + 1 // bettor_count
+        + 1; // bump
+
+    pub fn has_bet(&self, bettor: &Pubkey) -> bool {
+        self.bettors[..self.bettor_count as usize].contains(bettor)
+    }
 }

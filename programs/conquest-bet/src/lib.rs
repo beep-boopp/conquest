@@ -51,4 +51,16 @@ pub mod conquest_bet {
     pub fn claim_victory(ctx: Context<ClaimVictory>, tournament_complete: bool) -> Result<()> {
         instructions::claim_victory::claim_victory_handler(ctx, tournament_complete)
     }
+
+    pub fn place_miku_bet(ctx: Context<PlaceMikuBet>, team: u8) -> Result<()> {
+        instructions::place_miku_bet::place_miku_bet_handler(ctx, team)
+    }
+
+    pub fn resolve_miku_cup(ctx: Context<ResolveMikuCup>, winning_team: u8) -> Result<()> {
+        instructions::resolve_miku_cup::resolve_miku_cup_handler(ctx, winning_team)
+    }
+
+    pub fn reset_miku_cup(ctx: Context<ResetMikuCup>) -> Result<()> {
+        instructions::reset_miku_cup::reset_miku_cup_handler(ctx)
+    }
 }
