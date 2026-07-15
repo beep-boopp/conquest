@@ -7,4 +7,6 @@ export enum PredictionType {
   OverUnderGoals = "over_under_goals",
   BothTeamsScore = "both_teams_score",
   CustomProp = "custom_prop",
+  ExtraTime = "extra_time",
+  Penalties = "penalties",
 }

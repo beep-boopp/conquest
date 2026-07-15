@@ -22,6 +22,14 @@ export const PREDICTION_OUTCOME_OPTIONS: Record<PredictionType, { code: number; 
     { code: 0, label: "No" },
     { code: 1, label: "Yes" },
   ],
+  [PredictionType.ExtraTime]: [
+    { code: 0, label: "No" },
+    { code: 1, label: "Yes" },
+  ],
+  [PredictionType.Penalties]: [
+    { code: 0, label: "No" },
+    { code: 1, label: "Yes" },
+  ],
 };
 
 export const PREDICTION_TYPE_LABELS: Record<PredictionType, string> = {
@@ -29,4 +37,6 @@ export const PREDICTION_TYPE_LABELS: Record<PredictionType, string> = {
   [PredictionType.OverUnderGoals]: "Over/Under Goals",
   [PredictionType.BothTeamsScore]: "Both Teams to Score",
   [PredictionType.CustomProp]: "Custom Prop",
+  [PredictionType.ExtraTime]: "Will it go to Extra Time?",
+  [PredictionType.Penalties]: "Will it go to Penalties?",
 };

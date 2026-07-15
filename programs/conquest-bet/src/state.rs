@@ -101,6 +101,11 @@ pub enum PredictionType {
     OverUnderGoals,
     BothTeamsScore,
     CustomProp,
+    // Appended, not inserted — Borsh encodes enums by declaration order, so
+    // new variants must go at the end to stay compatible with any Wager
+    // accounts already created on-chain.
+    ExtraTime,
+    Penalties,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, Debug)]
