@@ -4,7 +4,7 @@ import { Connection, Keypair, PublicKey, Transaction, VersionedTransaction } fro
 
 import idlJson from "@/idl/conquest_bet.json";
 import type { ConquestBet } from "@/idl/conquest_bet";
-import { Player, PredictionType, Room, RoomStatus, Wager, WagerOutcome, WagerStatus } from "@/types";
+import { MikuBettor, MikuPool, MikuTeam, Player, PredictionType, Room, RoomStatus, Wager, WagerOutcome, WagerStatus } from "@/types";
 import { DEVNET_RPC_URL, PROGRAM_ID } from "./constants";
 
 const idl = idlJson as ConquestBet;
@@ -87,6 +87,12 @@ export function deriveWagerAddress(room: PublicKey, wagerId: number): PublicKey 
   return address;
 }
 
+/** Global singleton — no per-user/per-room key, unlike Room/Wager PDAs. */
+export function deriveMikuPoolAddress(): PublicKey {
+  const [address] = PublicKey.findProgramAddressSync([Buffer.from("miku_pool")], programId);
+  return address;
+}
+
 // ---- Enum conversion: our snake_case string enums <-> Anchor's camelCase-keyed objects ----
 // e.g. PredictionType.MatchWinner ("match_winner") <-> { matchWinner: {} }
 
@@ -145,6 +151,36 @@ function toRoomView(address: PublicKey, account: OnChainRoom): Room {
     players,
     started: account.started,
     status: fromAnchorEnum(account.status) as RoomStatus,
+  };
+}
+
+interface OnChainMikuPool {
+  totalEngland: BN;
+  totalArgentina: BN;
+  totalSpain: BN;
+  currentHolder: number;
+  isResolved: boolean;
+  totalPool: BN;
+  bettors: PublicKey[];
+  bettorTeams: number[];
+  bettorCount: number;
+}
+
+function toMikuPoolView(address: PublicKey, account: OnChainMikuPool): MikuPool {
+  const bettors: MikuBettor[] = account.bettors.slice(0, account.bettorCount).map((pubkey, i) => ({
+    address: pubkey.toBase58(),
+    team: account.bettorTeams[i] as MikuTeam,
+  }));
+
+  return {
+    address: address.toBase58(),
+    totalEngland: account.totalEngland.toNumber(),
+    totalArgentina: account.totalArgentina.toNumber(),
+    totalSpain: account.totalSpain.toNumber(),
+    currentHolder: account.currentHolder as MikuTeam,
+    isResolved: account.isResolved,
+    totalPool: account.totalPool.toNumber(),
+    bettors,
   };
 }
 
@@ -208,6 +244,18 @@ export async function fetchWagersForFixture(fixtureId: number): Promise<Wager[]>
   return entries
     .map((e) => toWagerView(e.publicKey, e.account as unknown as OnChainWager))
     .filter((wager) => wager.fixtureId === String(fixtureId));
+}
+
+/** The global Miku Cup pool, or null if nobody has bet yet (account doesn't exist). */
+export async function fetchMikuPool(): Promise<MikuPool | null> {
+  const program = getReadOnlyProgram();
+  const address = deriveMikuPoolAddress();
+  try {
+    const account = await program.account.mikuPool.fetch(address);
+    return toMikuPoolView(address, account as unknown as OnChainMikuPool);
+  } catch {
+    return null;
+  }
 }
 
 /** All rooms a given player belongs to. Scans every Room account — fine at hackathon scale. */
@@ -349,6 +397,31 @@ export async function claimVictory(claimant: Keypair | AnchorWallet, params: Cla
     .claimVictory(params.tournamentComplete)
     .accounts({ room: params.roomAddress, claimant: claimant.publicKey })
     .rpc();
+}
+
+/**
+ * Mirrors place_miku_bet. `miku_pool` is a global singleton PDA (seeds:
+ * miku_pool, no per-user key) — Anchor's client auto-resolves it from the
+ * IDL, along with systemProgram, so both are omitted here.
+ */
+export async function placeMikuBet(bettor: Keypair | AnchorWallet, team: MikuTeam): Promise<string> {
+  const program = getProgram(bettor);
+  return program.methods.placeMikuBet(team).accounts({ bettor: bettor.publicKey }).rpc();
+}
+
+/**
+ * Mirrors resolve_miku_cup. Any signer, same Layer-1 trust model as
+ * resolveWager — no on-chain result verification yet.
+ */
+export async function resolveMikuCup(resolver: Keypair | AnchorWallet, winningTeam: MikuTeam): Promise<string> {
+  const program = getProgram(resolver);
+  return program.methods.resolveMikuCup(winningTeam).accounts({ resolver: resolver.publicKey }).rpc();
+}
+
+/** Mirrors reset_miku_cup — wipes the pool back to a fresh, unbet state. Admin/script use only, not exposed in the UI. */
+export async function resetMikuCup(resolver: Keypair | AnchorWallet): Promise<string> {
+  const program = getProgram(resolver);
+  return program.methods.resetMikuCup().accounts({ resolver: resolver.publicKey }).rpc();
 }
 
 // Re-exported for call sites that need to build PublicKeys/BNs directly.

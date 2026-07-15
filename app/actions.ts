@@ -3,7 +3,7 @@
 import { PublicKey } from "@solana/web3.js";
 
 import * as client from "@/lib/anchor-client";
-import { Room, Wager } from "@/types";
+import { MikuPool, Room, Wager } from "@/types";
 
 function tryParsePublicKey(address: string): PublicKey | null {
   try {
@@ -30,4 +30,8 @@ export async function getWagersForRoomAction(roomAddress: string): Promise<Wager
   const key = tryParsePublicKey(roomAddress);
   if (!key) return [];
   return client.fetchWagersForRoom(key);
+}
+
+export async function getMikuPoolAction(): Promise<MikuPool | null> {
+  return client.fetchMikuPool();
 }

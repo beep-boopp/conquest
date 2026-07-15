@@ -9,7 +9,7 @@ import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import * as client from "@/lib/anchor-client";
 import { AnchorWallet } from "@/lib/anchor-client";
-import { PredictionType } from "@/types";
+import { MikuTeam, PredictionType } from "@/types";
 
 /**
  * Adapts a Privy embedded Solana wallet to the AnchorWallet interface
@@ -142,6 +142,10 @@ export function useConquestActions() {
         roomAddress: new PublicKey(params.roomAddress),
         tournamentComplete: params.tournamentComplete,
       });
+    },
+
+    async placeMikuBet(team: MikuTeam): Promise<string> {
+      return client.placeMikuBet(requireWallet(), team);
     },
   };
 }

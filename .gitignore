@@ -42,3 +42,4 @@ next-env.d.ts
 
 # hardcoded devnet test wallets (pre-Privy dev convenience, see lib/test-wallets.ts)
 /.dev-wallets
+*:Zone.Identifier

@@ -4,3 +4,4 @@ export * from "./prediction";
 export * from "./wager";
 export * from "./txline";
 export * from "./wallet";
+export * from "./miku";
