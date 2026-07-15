@@ -6,6 +6,10 @@ import { ENGLAND_MIKU_IMAGE, MIKU_QUOTES, MIKU_TEAM_FLAGS, MIKU_TEAM_LABELS } fr
 import { useConquestActions } from "@/lib/use-conquest-actions";
 import { MikuPool, MikuTeam } from "@/types";
 
+function Flag({ team, className = "" }: { team: MikuTeam; className?: string }) {
+  return <span className={`fi fi-${MIKU_TEAM_FLAGS[team]} rounded-[2px] ${className}`} />;
+}
+
 function teamTotal(pool: MikuPool, team: MikuTeam): number {
   if (team === MikuTeam.England) return pool.totalEngland;
   if (team === MikuTeam.Argentina) return pool.totalArgentina;
@@ -54,16 +58,16 @@ export function MikuCupCard({
         <img src={ENGLAND_MIKU_IMAGE} alt="Miku Cup" className="h-56 w-full object-cover object-top" />
       ) : (
         <div className="flex h-56 w-full items-center justify-center bg-gradient-to-b from-yellow-500/20 to-neutral-900 text-8xl">
-          {currentHolder !== null ? MIKU_TEAM_FLAGS[currentHolder] : "🏆"}
+          {currentHolder !== null ? <Flag team={currentHolder} className="text-8xl" /> : "🏆"}
         </div>
       )}
       <div className="p-6">
         <div className="mb-1 flex items-center justify-between">
           <div className="text-lg font-bold text-yellow-500">🏆 Miku Cup</div>
           {currentHolder !== null && (
-            <div className="text-sm text-neutral-300">
+            <div className="flex items-center gap-1.5 text-sm text-neutral-300">
               {isResolved ? "Winner: " : "Leading: "}
-              {MIKU_TEAM_FLAGS[currentHolder]} {MIKU_TEAM_LABELS[currentHolder]}
+              <Flag team={currentHolder} /> {MIKU_TEAM_LABELS[currentHolder]}
             </div>
           )}
         </div>
@@ -72,8 +76,8 @@ export function MikuCupCard({
         )}
 
         {isResolved ? (
-          <p className="text-sm font-semibold text-neutral-100">
-            {MIKU_TEAM_FLAGS[currentHolder as MikuTeam]} {MIKU_TEAM_LABELS[currentHolder as MikuTeam]} wins the Miku Cup!
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-neutral-100">
+            <Flag team={currentHolder as MikuTeam} /> {MIKU_TEAM_LABELS[currentHolder as MikuTeam]} wins the Miku Cup!
             {iWon && ` You bet on the winner — you'd have won ~${myShare} land.`}
           </p>
         ) : (
@@ -88,7 +92,7 @@ export function MikuCupCard({
                     myBet?.team === team ? "bg-yellow-500 text-black" : "bg-neutral-800 text-neutral-200 hover:bg-neutral-700"
                   }`}
                 >
-                  {MIKU_TEAM_FLAGS[team]} {MIKU_TEAM_LABELS[team]}
+                  <Flag team={team} /> {MIKU_TEAM_LABELS[team]}
                   <div className="text-xs opacity-75">{pool ? teamTotal(pool, team) : 0} land</div>
                 </button>
               ))}

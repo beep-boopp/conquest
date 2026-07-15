@@ -7,10 +7,10 @@ function StepCard({ step }: { step: MikuCustodyStep }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={ENGLAND_MIKU_IMAGE} alt={step.country} className="h-16 w-16 rounded object-cover object-top" />
       ) : (
-        <div className="text-3xl">{step.flag}</div>
+        <span className={`fi fi-${step.flag} text-3xl`} />
       )}
       <div className="text-sm font-medium text-neutral-100">
-        {step.flag} {step.country}
+        <span className={`fi fi-${step.flag} mr-1 rounded-[2px]`} /> {step.country}
       </div>
       <div className="text-xs text-neutral-500">{step.resultLabel}</div>
       <div className="text-xs italic text-neutral-400">{step.quip}</div>

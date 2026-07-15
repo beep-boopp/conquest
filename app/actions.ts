@@ -85,14 +85,14 @@ export async function getGlobalPageDataAction(): Promise<{ bracket: BracketMatch
       : sfEngland.winner === "team1"
         ? {
             country: "England",
-            flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+            flag: "gb-eng",
             resultLabel: `England ${sfEngland.score1}-${sfEngland.score2} Argentina${aet}`,
             quip: "Miku remains English!",
             hasArt: true,
           }
         : {
             country: "Argentina",
-            flag: "🇦🇷",
+            flag: "ar",
             resultLabel: `Argentina ${sfEngland.score2}-${sfEngland.score1} England${aet}`,
             quip: "Miku became Argentine!",
             hasArt: false,
