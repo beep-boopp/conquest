@@ -21,11 +21,11 @@ export function InviteLink({ roomAddress }: { roomAddress: string }) {
   }
 
   return (
-    <div className="flex items-center gap-2 rounded border p-2 text-sm">
-      <span className="truncate text-gray-500">{link}</span>
+    <div className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-sm">
+      <span className="truncate text-neutral-400">{link}</span>
       <button
         onClick={handleCopy}
-        className="shrink-0 rounded bg-black px-2 py-1 text-xs text-white"
+        className="shrink-0 rounded bg-yellow-500 px-2 py-1 text-xs font-medium text-black hover:bg-yellow-400"
       >
         {copied ? "Copied!" : "Copy invite link"}
       </button>

@@ -58,7 +58,7 @@ export function RoomView({
 
   return (
     <div className="grid gap-6">
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
       {isActive && <InviteLink roomAddress={room.address} />}
 
@@ -67,13 +67,16 @@ export function RoomView({
           <button
             onClick={handleJoin}
             disabled={joining}
-            className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+            className="rounded-md bg-yellow-500 px-4 py-2 text-sm font-medium text-black hover:bg-yellow-400 disabled:opacity-50"
           >
             {joining ? "Joining..." : "Join Room"}
           </button>
         )}
         {isMember && isActive && (
-          <button onClick={() => setModalOpen(true)} className="rounded bg-black px-4 py-2 text-sm text-white">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="rounded-md bg-yellow-500 px-4 py-2 text-sm font-medium text-black hover:bg-yellow-400"
+          >
             Propose Wager
           </button>
         )}
@@ -81,12 +84,12 @@ export function RoomView({
           <button
             onClick={handleClaimVictory}
             disabled={claiming}
-            className="rounded border px-4 py-2 text-sm disabled:opacity-50"
+            className="rounded border border-neutral-700 px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-800 disabled:opacity-50"
           >
             {claiming ? "Claiming..." : "Claim Victory"}
           </button>
         )}
-        {!isActive && <span className="text-sm font-semibold text-yellow-700">Room completed</span>}
+        {!isActive && <span className="text-sm font-semibold text-yellow-500">Room completed</span>}
       </section>
 
       <section>
@@ -98,7 +101,7 @@ export function RoomView({
         <h2 className="mb-2 text-lg font-semibold">Wagers</h2>
         <div className="grid gap-3">
           {wagers.length === 0 ? (
-            <p className="text-sm text-gray-500">No wagers yet.</p>
+            <p className="text-sm text-neutral-500">No wagers yet.</p>
           ) : (
             wagers.map((wager) => (
               <WagerCard key={wager.address} wager={wager} activeAddress={activeAddress} onChange={onChange} />

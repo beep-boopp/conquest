@@ -40,32 +40,36 @@ export default function RoomPage({ params }: { params: { roomAddress: string } }
 
   if (!ready || !authenticated) {
     return (
-      <main className="mx-auto max-w-4xl p-8">
-        <p className="text-sm text-gray-500">Loading...</p>
+      <main className="min-h-screen bg-neutral-950 text-neutral-100">
+        <div className="mx-auto max-w-4xl p-8">
+          <p className="text-sm text-neutral-500">Loading...</p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-4xl p-8">
-      <div className="mb-2 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Room</h1>
-        <div className="flex items-center gap-3 text-sm">
-          {walletAddress && <span className="text-gray-500">{truncateAddress(walletAddress)}</span>}
-          <button onClick={() => logout()} className="rounded border px-3 py-1">
-            Log out
-          </button>
+    <main className="min-h-screen bg-neutral-950 text-neutral-100">
+      <div className="mx-auto max-w-4xl p-8">
+        <div className="mb-2 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Room</h1>
+          <div className="flex items-center gap-3 text-sm">
+            {walletAddress && <span className="text-neutral-400">{truncateAddress(walletAddress)}</span>}
+            <button onClick={() => logout()} className="rounded border border-neutral-700 px-3 py-1 text-neutral-200 hover:bg-neutral-800">
+              Log out
+            </button>
+          </div>
         </div>
-      </div>
-      <p className="mb-6 break-all text-xs text-gray-400">{params.roomAddress}</p>
+        <p className="mb-6 break-all text-xs text-neutral-600">{params.roomAddress}</p>
 
-      {loading ? (
-        <p className="text-sm text-gray-500">Loading room...</p>
-      ) : !room ? (
-        <p className="text-sm text-red-600">Room not found.</p>
-      ) : (
-        <RoomView room={room} wagers={wagers} activeAddress={walletAddress} onChange={refresh} />
-      )}
+        {loading ? (
+          <p className="text-sm text-neutral-500">Loading room...</p>
+        ) : !room ? (
+          <p className="text-sm text-red-400">Room not found.</p>
+        ) : (
+          <RoomView room={room} wagers={wagers} activeAddress={walletAddress} onChange={refresh} />
+        )}
+      </div>
     </main>
   );
 }

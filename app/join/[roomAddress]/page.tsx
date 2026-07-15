@@ -59,47 +59,57 @@ export default function JoinRoomPage({ params }: { params: { roomAddress: string
 
   if (!ready) {
     return (
-      <main className="mx-auto max-w-md p-8 text-center">
-        <p className="text-sm text-gray-500">Loading...</p>
+      <main className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-100">
+        <div className="mx-auto max-w-md p-8 text-center">
+          <p className="text-sm text-neutral-500">Loading...</p>
+        </div>
       </main>
     );
   }
 
   if (!authenticated) {
     return (
-      <main className="mx-auto flex max-w-md flex-col items-center gap-4 p-8 text-center">
-        <h1 className="text-xl font-bold">Join ConquestBet Room</h1>
-        <p className="text-sm text-gray-500">Log in to join this room.</p>
-        <LoginButton />
+      <main className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-100">
+        <div className="mx-auto flex max-w-md flex-col items-center gap-4 p-8 text-center">
+          <h1 className="text-xl font-bold">Join ConquestBet Room</h1>
+          <p className="text-sm text-neutral-400">Log in to join this room.</p>
+          <LoginButton />
+        </div>
       </main>
     );
   }
 
   if (status === "not-found") {
     return (
-      <main className="mx-auto max-w-md p-8 text-center">
-        <p className="text-sm text-red-600">Room not found.</p>
+      <main className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-100">
+        <div className="mx-auto max-w-md p-8 text-center">
+          <p className="text-sm text-red-400">Room not found.</p>
+        </div>
       </main>
     );
   }
 
   if (status === "error") {
     return (
-      <main className="mx-auto flex max-w-md flex-col items-center gap-4 p-8 text-center">
-        <p className="text-sm text-red-600">{error}</p>
-        <button
-          onClick={() => router.push(`/room/${params.roomAddress}`)}
-          className="rounded border px-4 py-2 text-sm"
-        >
-          Go to room anyway
-        </button>
+      <main className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-100">
+        <div className="mx-auto flex max-w-md flex-col items-center gap-4 p-8 text-center">
+          <p className="text-sm text-red-400">{error}</p>
+          <button
+            onClick={() => router.push(`/room/${params.roomAddress}`)}
+            className="rounded border border-neutral-700 px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-800"
+          >
+            Go to room anyway
+          </button>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-md p-8 text-center">
-      <p className="text-sm text-gray-500">{status === "joining" ? "Joining room..." : "Checking room..."}</p>
+    <main className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-100">
+      <div className="mx-auto max-w-md p-8 text-center">
+        <p className="text-sm text-neutral-500">{status === "joining" ? "Joining room..." : "Checking room..."}</p>
+      </div>
     </main>
   );
 }

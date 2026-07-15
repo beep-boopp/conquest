@@ -92,23 +92,23 @@ export function WagerFlowModal({
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-md bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold">Propose a Wager</h2>
+    <div className="fixed inset-0 flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-md rounded-lg border border-neutral-800 bg-neutral-900 p-6">
+        <h2 className="mb-4 text-lg font-semibold text-neutral-100">Propose a Wager</h2>
 
         <div className="mb-3">
-          <label className="mb-1 block text-xs text-gray-500">Match</label>
+          <label className="mb-1 block text-xs text-neutral-500">Match</label>
           {fixturesLoading ? (
-            <p className="text-sm text-gray-500">Loading fixtures...</p>
+            <p className="text-sm text-neutral-500">Loading fixtures...</p>
           ) : fixturesError ? (
-            <p className="text-sm text-red-600">{fixturesError}</p>
+            <p className="text-sm text-red-400">{fixturesError}</p>
           ) : fixtures.length === 0 ? (
-            <p className="text-sm text-gray-500">No upcoming fixtures.</p>
+            <p className="text-sm text-neutral-500">No upcoming fixtures.</p>
           ) : (
             <select
               value={fixtureId}
               onChange={(e) => setFixtureId(e.target.value)}
-              className="w-full rounded border px-2 py-1 text-sm"
+              className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100"
             >
               {fixtures.map((f) => (
                 <option key={f.fixtureId} value={f.fixtureId}>
@@ -120,14 +120,14 @@ export function WagerFlowModal({
         </div>
 
         <div className="mb-3">
-          <label className="mb-1 block text-xs text-gray-500">Prediction type</label>
+          <label className="mb-1 block text-xs text-neutral-500">Prediction type</label>
           <select
             value={predictionType}
             onChange={(e) => {
               setPredictionType(e.target.value as PredictionType);
               setPredictedOutcome(0);
             }}
-            className="w-full rounded border px-2 py-1 text-sm"
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100"
           >
             {Object.values(PredictionType).map((pt) => (
               <option key={pt} value={pt}>
@@ -138,13 +138,15 @@ export function WagerFlowModal({
         </div>
 
         <div className="mb-3">
-          <label className="mb-1 block text-xs text-gray-500">Your prediction</label>
+          <label className="mb-1 block text-xs text-neutral-500">Your prediction</label>
           <div className="flex gap-2">
             {options.map((opt) => (
               <button
                 key={opt.code}
                 onClick={() => setPredictedOutcome(opt.code)}
-                className={`rounded px-2 py-1 text-sm ${predictedOutcome === opt.code ? "bg-black text-white" : "bg-gray-100"}`}
+                className={`rounded px-2 py-1 text-sm ${
+                  predictedOutcome === opt.code ? "bg-yellow-500 text-black" : "bg-neutral-800 text-neutral-200"
+                }`}
               >
                 {opt.label}
               </button>
@@ -153,11 +155,11 @@ export function WagerFlowModal({
         </div>
 
         <div className="mb-3">
-          <label className="mb-1 block text-xs text-gray-500">Opponent</label>
+          <label className="mb-1 block text-xs text-neutral-500">Opponent</label>
           <select
             value={opponent}
             onChange={(e) => setOpponent(e.target.value)}
-            className="w-full rounded border px-2 py-1 text-sm"
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100"
           >
             <option value="">Select a player...</option>
             {opponentOptions.map((p) => (
@@ -169,25 +171,25 @@ export function WagerFlowModal({
         </div>
 
         <div className="mb-4">
-          <label className="mb-1 block text-xs text-gray-500">Land stake</label>
+          <label className="mb-1 block text-xs text-neutral-500">Land stake</label>
           <input
             type="number"
             value={landStake}
             onChange={(e) => setLandStake(Number(e.target.value))}
-            className="w-full rounded border px-2 py-1 text-sm"
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100"
           />
         </div>
 
-        {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+        {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
 
         <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="rounded bg-gray-200 px-3 py-1 text-sm">
+          <button onClick={onClose} className="rounded bg-neutral-800 px-3 py-1 text-sm text-neutral-200 hover:bg-neutral-700">
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50"
+            className="rounded bg-yellow-500 px-3 py-1 text-sm font-medium text-black hover:bg-yellow-400 disabled:opacity-50"
           >
             {submitting ? "Sending..." : "Send Wager"}
           </button>

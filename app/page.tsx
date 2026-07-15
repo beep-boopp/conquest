@@ -16,13 +16,17 @@ export default function Home() {
   }, [ready, authenticated, router]);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-6 p-8 text-center">
-      <h1 className="text-4xl font-bold">ConquestBet</h1>
-      <p className="text-gray-500">
-        Create a private room with your friends, wager land on World Cup match predictions, and conquer their
-        territory when TxLINE confirms the result on-chain.
-      </p>
-      <LoginButton />
+    <main className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 p-8 text-center text-neutral-100">
+      <div className="mx-auto flex max-w-2xl flex-col items-center gap-6">
+        <h1 className="text-5xl font-bold">
+          Conquest<span className="text-yellow-500">Bet</span>
+        </h1>
+        <p className="text-neutral-400">
+          Create a private room with your friends, wager land on World Cup match predictions, and conquer their
+          territory when TxLINE confirms the result on-chain.
+        </p>
+        <LoginButton />
+      </div>
     </main>
   );
 }

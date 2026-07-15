@@ -13,7 +13,7 @@ export function LoginButton() {
     <button
       onClick={handleClick}
       disabled={!ready}
-      className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
+      className="rounded-md bg-yellow-500 px-6 py-3 font-medium text-black hover:bg-yellow-400 disabled:opacity-50"
     >
       Sign in with Google
     </button>
