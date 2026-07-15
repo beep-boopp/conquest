@@ -22,12 +22,10 @@ export function WagerCard({
   activeAddress: string | null;
   onChange: () => void;
 }) {
-  const { acceptWager, resolveWager } = useConquestActions();
+  const { acceptWager } = useConquestActions();
   const [accepting, setAccepting] = useState(false);
-  const [resolving, setResolving] = useState(false);
   const [predictedOutcome, setPredictedOutcome] = useState<number | null>(null);
   const [landStake, setLandStake] = useState(100);
-  const [matchResult, setMatchResult] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const options = PREDICTION_OUTCOME_OPTIONS[wager.predictionType];
@@ -54,27 +52,6 @@ export function WagerCard({
       setError(e instanceof Error ? e.message : "Failed to accept wager");
     } finally {
       setAccepting(false);
-    }
-  }
-
-  async function handleResolve() {
-    if (matchResult === null) {
-      setError("Pick the match result to simulate.");
-      return;
-    }
-    setResolving(true);
-    setError(null);
-    try {
-      await resolveWager({
-        roomAddress: wager.room,
-        wagerAddress: wager.address,
-        matchResult,
-      });
-      onChange();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to resolve wager");
-    } finally {
-      setResolving(false);
     }
   }
 
@@ -124,30 +101,11 @@ export function WagerCard({
       )}
 
       {canResolve && (
-        <div className="mt-3 flex flex-col gap-2 border-t border-neutral-800 pt-3">
-          <div className="text-xs text-neutral-500">
-            Dev-only: simulate the match result (real TxLINE verification lands later — see resolve_wager.rs)
-          </div>
-          <div className="flex gap-2">
-            {options.map((opt) => (
-              <button
-                key={opt.code}
-                onClick={() => setMatchResult(opt.code)}
-                className={`rounded px-2 py-1 text-sm ${
-                  matchResult === opt.code ? "bg-yellow-500 text-black" : "bg-neutral-800 text-neutral-200"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={handleResolve}
-            disabled={resolving}
-            className="rounded bg-yellow-500 px-3 py-1 text-sm font-medium text-black hover:bg-yellow-400 disabled:opacity-50"
-          >
-            {resolving ? "Resolving..." : "Resolve Wager"}
-          </button>
+        <div className="mt-3 border-t border-neutral-800 pt-3">
+          <p className="text-xs text-neutral-500">
+            ⏳ Locked in — waiting for the real match result from TxLINE. This settles automatically once the match
+            ends, no one in this room can resolve it manually.
+          </p>
         </div>
       )}
     </div>

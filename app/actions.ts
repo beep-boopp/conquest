@@ -17,6 +17,15 @@ function tryParsePublicKey(address: string): PublicKey | null {
   }
 }
 
+/**
+ * Rooms hidden from the app everywhere (Your Rooms, Open Rooms, direct
+ * /room and /join links). There's no close_room instruction on-chain — the
+ * account itself isn't deletable without writing and redeploying one — so
+ * this is a soft-delete at the UI layer only. The account still technically
+ * exists and is enumerable via raw RPC calls, it's just invisible here.
+ */
+const HIDDEN_ROOM_ADDRESSES = new Set(["J7oLvLaMnCYFBFJciAZ6nvthYFjtcUXqoyuwUeJqgWEp"]);
+
 /** Attaches off-chain display names (see lib/player-directory.ts) to whichever players have registered one. */
 function withDisplayNames(room: Room): Room {
   const names = getPlayerNames(room.players.map((p) => p.pubkey));
@@ -35,10 +44,11 @@ export async function getRoomsForWalletAction(walletAddress: string): Promise<Ro
   const key = tryParsePublicKey(walletAddress);
   if (!key) return [];
   const rooms = await client.fetchRoomsForPlayer(key);
-  return rooms.map(withDisplayNames);
+  return rooms.filter((r) => !HIDDEN_ROOM_ADDRESSES.has(r.address)).map(withDisplayNames);
 }
 
 export async function getRoomAction(roomAddress: string): Promise<Room | null> {
+  if (HIDDEN_ROOM_ADDRESSES.has(roomAddress)) return null;
   const key = tryParsePublicKey(roomAddress);
   if (!key) return null;
   const room = await client.fetchRoom(key);
@@ -47,10 +57,11 @@ export async function getRoomAction(roomAddress: string): Promise<Room | null> {
 
 export async function getAllRoomsAction(): Promise<Room[]> {
   const rooms = await client.fetchAllRooms();
-  return rooms.map(withDisplayNames);
+  return rooms.filter((r) => !HIDDEN_ROOM_ADDRESSES.has(r.address)).map(withDisplayNames);
 }
 
 export async function getWagersForRoomAction(roomAddress: string): Promise<Wager[]> {
+  if (HIDDEN_ROOM_ADDRESSES.has(roomAddress)) return [];
   const key = tryParsePublicKey(roomAddress);
   if (!key) return [];
   return client.fetchWagersForRoom(key);
