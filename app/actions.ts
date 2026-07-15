@@ -5,6 +5,7 @@ import { PublicKey } from "@solana/web3.js";
 import * as client from "@/lib/anchor-client";
 import { BRACKET_MATCHES, BracketMatch } from "@/lib/bracket-data";
 import { MikuCustodyStep } from "@/lib/miku-content";
+import { getPlayerNames, registerPlayerName } from "@/lib/player-directory";
 import { enrichFixture, getFixtures } from "@/lib/txline";
 import { MikuPool, Room, Wager } from "@/types";
 
@@ -16,21 +17,37 @@ function tryParsePublicKey(address: string): PublicKey | null {
   }
 }
 
+/** Attaches off-chain display names (see lib/player-directory.ts) to whichever players have registered one. */
+function withDisplayNames(room: Room): Room {
+  const names = getPlayerNames(room.players.map((p) => p.pubkey));
+  return { ...room, players: room.players.map((p) => ({ ...p, displayName: names[p.pubkey] ?? p.displayName })) };
+}
+
+/** Called once on login (see lib/use-conquest-actions.ts) so other players can resolve this wallet's name. */
+export async function registerPlayerNameAction(walletAddress: string, name: string): Promise<void> {
+  const key = tryParsePublicKey(walletAddress);
+  if (!key || !name.trim()) return;
+  registerPlayerName(walletAddress, name.trim());
+}
+
 /** Read-only — no signer needed, safe to run server-side regardless of who's logged in. */
 export async function getRoomsForWalletAction(walletAddress: string): Promise<Room[]> {
   const key = tryParsePublicKey(walletAddress);
   if (!key) return [];
-  return client.fetchRoomsForPlayer(key);
+  const rooms = await client.fetchRoomsForPlayer(key);
+  return rooms.map(withDisplayNames);
 }
 
 export async function getRoomAction(roomAddress: string): Promise<Room | null> {
   const key = tryParsePublicKey(roomAddress);
   if (!key) return null;
-  return client.fetchRoom(key);
+  const room = await client.fetchRoom(key);
+  return room ? withDisplayNames(room) : null;
 }
 
 export async function getAllRoomsAction(): Promise<Room[]> {
-  return client.fetchAllRooms();
+  const rooms = await client.fetchAllRooms();
+  return rooms.map(withDisplayNames);
 }
 
 export async function getWagersForRoomAction(roomAddress: string): Promise<Wager[]> {

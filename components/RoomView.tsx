@@ -104,7 +104,7 @@ export function RoomView({
             <p className="text-sm text-neutral-500">No wagers yet.</p>
           ) : (
             wagers.map((wager) => (
-              <WagerCard key={wager.address} wager={wager} activeAddress={activeAddress} onChange={onChange} />
+              <WagerCard key={wager.address} wager={wager} players={room.players} activeAddress={activeAddress} onChange={onChange} />
             ))
           )}
         </div>

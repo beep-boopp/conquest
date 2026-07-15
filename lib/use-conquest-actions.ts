@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth/solana";
 import type { ConnectedStandardSolanaWallet } from "@privy-io/react-auth/solana";
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 
+import { registerPlayerNameAction } from "@/app/actions";
 import * as client from "@/lib/anchor-client";
 import { AnchorWallet } from "@/lib/anchor-client";
 import { MikuTeam, PredictionType } from "@/types";
@@ -82,7 +83,7 @@ export interface ClaimVictoryActionParams {
  * (never the server) can produce a valid signature for their account.
  */
 export function useConquestActions() {
-  const { ready: privyReady, authenticated } = usePrivy();
+  const { ready: privyReady, authenticated, user } = usePrivy();
   const { ready: walletsReady, wallets } = useWallets();
   const solanaWallet = wallets[0];
 
@@ -92,6 +93,14 @@ export function useConquestActions() {
     if (!anchorWallet) throw new Error("No wallet connected — log in first.");
     return anchorWallet;
   }
+
+  // Registers this wallet's Google name once per login so other players can
+  // resolve "who is JE4G...RjJE" to an actual name — see lib/player-directory.ts.
+  const displayName = user?.google?.name ?? user?.google?.email ?? null;
+  useEffect(() => {
+    if (!authenticated || !solanaWallet?.address || !displayName) return;
+    registerPlayerNameAction(solanaWallet.address, displayName);
+  }, [authenticated, solanaWallet?.address, displayName]);
 
   return {
     ready: privyReady && walletsReady,

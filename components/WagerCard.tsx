@@ -4,14 +4,21 @@ import { useState } from "react";
 
 import { PREDICTION_OUTCOME_OPTIONS, PREDICTION_TYPE_LABELS } from "@/lib/prediction-outcomes";
 import { useConquestActions } from "@/lib/use-conquest-actions";
-import { Wager, WagerStatus } from "@/types";
+import { Player, Wager, WagerStatus } from "@/types";
+
+function nameFor(players: Player[], pubkey: string): string {
+  const player = players.find((p) => p.pubkey === pubkey);
+  return player?.displayName ?? `${pubkey.slice(0, 6)}...`;
+}
 
 export function WagerCard({
   wager,
+  players,
   activeAddress,
   onChange,
 }: {
   wager: Wager;
+  players: Player[];
   activeAddress: string | null;
   onChange: () => void;
 }) {
@@ -75,7 +82,7 @@ export function WagerCard({
     <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-4">
       <div className="text-sm font-medium">{PREDICTION_TYPE_LABELS[wager.predictionType]}</div>
       <div className="text-sm text-neutral-400">
-        {wager.proposer.slice(0, 6)}... vs {wager.opponent.slice(0, 6)}...
+        {nameFor(players, wager.proposer)} vs {nameFor(players, wager.opponent)}
       </div>
       <div className="text-sm text-neutral-400">
         Stakes: {wager.proposerStake} / {wager.opponentStake} land — status: {wager.status}

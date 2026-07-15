@@ -146,7 +146,7 @@ export function WagerFlowModal({
             <option value="">Select a player...</option>
             {opponentOptions.map((p) => (
               <option key={p.pubkey} value={p.pubkey}>
-                {p.pubkey.slice(0, 8)}... ({p.land} land)
+                {p.displayName ?? `${p.pubkey.slice(0, 8)}...`} ({p.land} land)
               </option>
             ))}
           </select>
