@@ -152,6 +152,58 @@
       "args": []
     },
     {
+      "name": "place_miku_bet",
+      "discriminator": [
+        133,
+        140,
+        149,
+        46,
+        122,
+        53,
+        224,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "miku_pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  107,
+                  117,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "bettor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "team",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "propose_wager",
       "discriminator": [
         83,
@@ -238,6 +290,95 @@
       ]
     },
     {
+      "name": "reset_miku_cup",
+      "discriminator": [
+        139,
+        87,
+        73,
+        15,
+        105,
+        106,
+        34,
+        73
+      ],
+      "accounts": [
+        {
+          "name": "miku_pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  107,
+                  117,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "resolver",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "resolve_miku_cup",
+      "discriminator": [
+        137,
+        120,
+        91,
+        135,
+        36,
+        91,
+        98,
+        56
+      ],
+      "accounts": [
+        {
+          "name": "miku_pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  107,
+                  117,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "resolver",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "winning_team",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "resolve_wager",
       "discriminator": [
         31,
@@ -284,6 +425,19 @@
     }
   ],
   "accounts": [
+    {
+      "name": "MikuPool",
+      "discriminator": [
+        159,
+        118,
+        86,
+        232,
+        234,
+        92,
+        207,
+        124
+      ]
+    },
     {
       "name": "Room",
       "discriminator": [
@@ -381,9 +535,101 @@
       "code": 6010,
       "name": "RoomAlreadyCompleted",
       "msg": "Room has already been completed."
+    },
+    {
+      "code": 6011,
+      "name": "InvalidTeam",
+      "msg": "Team must be 0 (England), 1 (Argentina), or 2 (Spain)."
+    },
+    {
+      "code": 6012,
+      "name": "AlreadyBetOnMikuCup",
+      "msg": "This wallet has already placed a Miku Cup bet."
+    },
+    {
+      "code": 6013,
+      "name": "MikuCupFull",
+      "msg": "Miku Cup has reached its maximum number of bettors."
+    },
+    {
+      "code": 6014,
+      "name": "MikuCupAlreadyResolved",
+      "msg": "Miku Cup has already been resolved."
     }
   ],
   "types": [
+    {
+      "name": "MikuPool",
+      "docs": [
+        "Global singleton pool for the \"Miku Cup\" side-bet: any player can lock a",
+        "fixed MIKU_BET_AMOUNT into one of three teams, independent of any Room.",
+        "This is a symbolic stake, not a deduction from a Room's land_balances —",
+        "there is no global per-wallet land balance anywhere else in this program,",
+        "so Miku Cup intentionally doesn't touch real Room land. `bettors` /",
+        "`bettor_teams` are parallel fixed-size arrays (same pattern as",
+        "Room::players / Room::land_balances) indexed together and sliced to",
+        "`bettor_count`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "total_england",
+            "type": "u64"
+          },
+          {
+            "name": "total_argentina",
+            "type": "u64"
+          },
+          {
+            "name": "total_spain",
+            "type": "u64"
+          },
+          {
+            "name": "current_holder",
+            "docs": [
+              "0 = England, 1 = Argentina, 2 = Spain. Leading team by total stake",
+              "pre-resolution; locked to the winner once is_resolved is true."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "is_resolved",
+            "type": "bool"
+          },
+          {
+            "name": "total_pool",
+            "type": "u64"
+          },
+          {
+            "name": "bettors",
+            "type": {
+              "array": [
+                "pubkey",
+                25
+              ]
+            }
+          },
+          {
+            "name": "bettor_teams",
+            "type": {
+              "array": [
+                "u8",
+                25
+              ]
+            }
+          },
+          {
+            "name": "bettor_count",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
     {
       "name": "PredictionType",
       "type": {
@@ -400,6 +646,12 @@
           },
           {
             "name": "CustomProp"
+          },
+          {
+            "name": "ExtraTime"
+          },
+          {
+            "name": "Penalties"
           }
         ]
       }

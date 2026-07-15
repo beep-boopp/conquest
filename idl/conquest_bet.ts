@@ -158,6 +158,58 @@ export type ConquestBet = {
       "args": []
     },
     {
+      "name": "placeMikuBet",
+      "discriminator": [
+        133,
+        140,
+        149,
+        46,
+        122,
+        53,
+        224,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "mikuPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  107,
+                  117,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "bettor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "team",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "proposeWager",
       "discriminator": [
         83,
@@ -244,6 +296,95 @@ export type ConquestBet = {
       ]
     },
     {
+      "name": "resetMikuCup",
+      "discriminator": [
+        139,
+        87,
+        73,
+        15,
+        105,
+        106,
+        34,
+        73
+      ],
+      "accounts": [
+        {
+          "name": "mikuPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  107,
+                  117,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "resolver",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "resolveMikuCup",
+      "discriminator": [
+        137,
+        120,
+        91,
+        135,
+        36,
+        91,
+        98,
+        56
+      ],
+      "accounts": [
+        {
+          "name": "mikuPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  107,
+                  117,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "resolver",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "winningTeam",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "resolveWager",
       "discriminator": [
         31,
@@ -290,6 +431,19 @@ export type ConquestBet = {
     }
   ],
   "accounts": [
+    {
+      "name": "mikuPool",
+      "discriminator": [
+        159,
+        118,
+        86,
+        232,
+        234,
+        92,
+        207,
+        124
+      ]
+    },
     {
       "name": "room",
       "discriminator": [
@@ -387,9 +541,101 @@ export type ConquestBet = {
       "code": 6010,
       "name": "roomAlreadyCompleted",
       "msg": "Room has already been completed."
+    },
+    {
+      "code": 6011,
+      "name": "invalidTeam",
+      "msg": "Team must be 0 (England), 1 (Argentina), or 2 (Spain)."
+    },
+    {
+      "code": 6012,
+      "name": "alreadyBetOnMikuCup",
+      "msg": "This wallet has already placed a Miku Cup bet."
+    },
+    {
+      "code": 6013,
+      "name": "mikuCupFull",
+      "msg": "Miku Cup has reached its maximum number of bettors."
+    },
+    {
+      "code": 6014,
+      "name": "mikuCupAlreadyResolved",
+      "msg": "Miku Cup has already been resolved."
     }
   ],
   "types": [
+    {
+      "name": "mikuPool",
+      "docs": [
+        "Global singleton pool for the \"Miku Cup\" side-bet: any player can lock a",
+        "fixed MIKU_BET_AMOUNT into one of three teams, independent of any Room.",
+        "This is a symbolic stake, not a deduction from a Room's land_balances —",
+        "there is no global per-wallet land balance anywhere else in this program,",
+        "so Miku Cup intentionally doesn't touch real Room land. `bettors` /",
+        "`bettor_teams` are parallel fixed-size arrays (same pattern as",
+        "Room::players / Room::land_balances) indexed together and sliced to",
+        "`bettor_count`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "totalEngland",
+            "type": "u64"
+          },
+          {
+            "name": "totalArgentina",
+            "type": "u64"
+          },
+          {
+            "name": "totalSpain",
+            "type": "u64"
+          },
+          {
+            "name": "currentHolder",
+            "docs": [
+              "0 = England, 1 = Argentina, 2 = Spain. Leading team by total stake",
+              "pre-resolution; locked to the winner once is_resolved is true."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "isResolved",
+            "type": "bool"
+          },
+          {
+            "name": "totalPool",
+            "type": "u64"
+          },
+          {
+            "name": "bettors",
+            "type": {
+              "array": [
+                "pubkey",
+                25
+              ]
+            }
+          },
+          {
+            "name": "bettorTeams",
+            "type": {
+              "array": [
+                "u8",
+                25
+              ]
+            }
+          },
+          {
+            "name": "bettorCount",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
     {
       "name": "predictionType",
       "type": {
@@ -406,6 +652,12 @@ export type ConquestBet = {
           },
           {
             "name": "customProp"
+          },
+          {
+            "name": "extraTime"
+          },
+          {
+            "name": "penalties"
           }
         ]
       }
