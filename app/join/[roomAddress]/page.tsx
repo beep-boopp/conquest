@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
@@ -17,9 +17,17 @@ export default function JoinRoomPage({ params }: { params: { roomAddress: string
   const router = useRouter();
   const [status, setStatus] = useState<Status>("checking");
   const [error, setError] = useState<string | null>(null);
+  // joinRoom (and everything else useConquestActions returns) is a new
+  // function reference every render, and setStatus below triggers a
+  // re-render — without this guard the effect re-fires on its own state
+  // changes and calls joinRoom again mid-flight, reprompting Privy
+  // repeatedly. This ensures the join flow only ever runs once per mount.
+  const hasStartedRef = useRef(false);
 
   useEffect(() => {
     if (!ready || !authenticated || !walletAddress) return;
+    if (hasStartedRef.current) return;
+    hasStartedRef.current = true;
 
     let cancelled = false;
 
@@ -55,7 +63,9 @@ export default function JoinRoomPage({ params }: { params: { roomAddress: string
     return () => {
       cancelled = true;
     };
-  }, [ready, authenticated, walletAddress, params.roomAddress, joinRoom, router]);
+    // joinRoom/router intentionally omitted — see hasStartedRef comment above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, authenticated, walletAddress, params.roomAddress]);
 
   if (!ready) {
     return (

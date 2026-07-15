@@ -56,14 +56,11 @@ export function MikuCupCard({
 
   return (
     <div className="overflow-hidden rounded-xl border-4 border-yellow-500 bg-neutral-900 shadow-[0_0_40px_rgba(234,179,8,0.4)]">
-      {currentHolder === MikuTeam.England ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={ENGLAND_MIKU_IMAGE} alt="Miku Cup" className="h-56 w-full object-cover object-top" />
-      ) : (
-        <div className="flex h-56 w-full items-center justify-center bg-gradient-to-b from-yellow-500/20 to-neutral-900 text-8xl">
-          {currentHolder !== null ? <Flag team={currentHolder} className="text-8xl" /> : "🏆"}
-        </div>
-      )}
+      {/* Miku's real-world custody is England's right now (see MikuTimelinePanel) —
+          keeping the banner on the England art regardless of who's leading the
+          Cup bet itself until that changes. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={ENGLAND_MIKU_IMAGE} alt="Miku Cup" className="h-56 w-full object-cover object-top" />
       <div className="p-6">
         <div className="mb-1 flex items-center justify-between">
           <div className="flex items-center gap-2">
