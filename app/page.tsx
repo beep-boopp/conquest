@@ -12,7 +12,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (ready && authenticated) router.push("/dashboard");
+    if (ready && authenticated) router.push("/global");
   }, [ready, authenticated, router]);
 
   return (
