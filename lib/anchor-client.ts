@@ -196,6 +196,20 @@ export async function fetchWagersForRoom(room: PublicKey): Promise<Wager[]> {
   return entries.map((e) => toWagerView(e.publicKey, e.account as unknown as OnChainWager));
 }
 
+/**
+ * All wagers for a given TxLINE fixture, across every room, regardless of
+ * status. Fetches all Wager accounts and filters client-side — fine at
+ * hackathon scale, avoids getting the memcmp byte offset for a u64 field
+ * wrong under time pressure.
+ */
+export async function fetchWagersForFixture(fixtureId: number): Promise<Wager[]> {
+  const program = getReadOnlyProgram();
+  const entries = await program.account.wager.all();
+  return entries
+    .map((e) => toWagerView(e.publicKey, e.account as unknown as OnChainWager))
+    .filter((wager) => wager.fixtureId === String(fixtureId));
+}
+
 /** All rooms a given player belongs to. Scans every Room account — fine at hackathon scale. */
 export async function fetchRoomsForPlayer(player: PublicKey): Promise<Room[]> {
   const program = getReadOnlyProgram();
