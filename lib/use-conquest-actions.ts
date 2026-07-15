@@ -25,12 +25,19 @@ class PrivyAnchorWallet implements AnchorWallet {
   }
 
   async signTransaction<T extends Transaction | VersionedTransaction>(tx: T): Promise<T> {
+    // Explicit chain required — Privy defaults an unspecified `chain` to
+    // 'solana:mainnet', which throws "No RPC configuration found" since
+    // this app only ever configures a devnet RPC (see PrivyProviders.tsx).
     if (tx instanceof VersionedTransaction) {
-      const { signedTransaction } = await this.wallet.signTransaction({ transaction: tx.serialize() });
+      const { signedTransaction } = await this.wallet.signTransaction({
+        transaction: tx.serialize(),
+        chain: "solana:devnet",
+      });
       return VersionedTransaction.deserialize(signedTransaction) as T;
     }
     const { signedTransaction } = await this.wallet.signTransaction({
       transaction: tx.serialize({ requireAllSignatures: false, verifySignatures: false }),
+      chain: "solana:devnet",
     });
     return Transaction.from(signedTransaction) as T;
   }

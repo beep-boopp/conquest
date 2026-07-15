@@ -1,6 +1,11 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
+import { createSolanaRpc, createSolanaRpcSubscriptions } from "@solana/kit";
+
+import { DEVNET_RPC_URL } from "@/lib/constants";
+
+const DEVNET_WS_URL = DEVNET_RPC_URL.replace(/^http/, "ws");
 
 // NEXT_PUBLIC_PRIVY_APP_ID is a placeholder until the real Privy app is
 // created — see CLAUDE.md. PrivyProvider validates the App ID synchronously
@@ -29,6 +34,21 @@ export function PrivyProviders({ children }: { children: React.ReactNode }) {
         embeddedWallets: {
           solana: {
             createOnLogin: "users-without-wallets",
+          },
+        },
+        // Without this, Privy's Solana wallet defaults any unspecified
+        // `chain` to 'solana:mainnet' and throws "No RPC configuration
+        // found" since we never configure a mainnet RPC (see
+        // lib/use-conquest-actions.ts, which now also passes
+        // chain: "solana:devnet" explicitly on every sign call — belt and
+        // suspenders, since either alone fixes the symptom but not the
+        // other's failure mode).
+        solana: {
+          rpcs: {
+            "solana:devnet": {
+              rpc: createSolanaRpc(DEVNET_RPC_URL),
+              rpcSubscriptions: createSolanaRpcSubscriptions(DEVNET_WS_URL),
+            },
           },
         },
       }}
