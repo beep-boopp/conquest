@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { PREDICTION_OUTCOME_OPTIONS, PREDICTION_TYPE_LABELS } from "@/lib/prediction-outcomes";
 import { useConquestActions } from "@/lib/use-conquest-actions";
-import { Player, PredictionType, TxLineFixture } from "@/types";
+import { Player, PredictionType } from "@/types";
 
-/** Fixtures from the start of today onwards — excludes historical/finished matches. */
-function isUpcoming(fixture: TxLineFixture): boolean {
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-  return new Date(fixture.kickoffTime) >= startOfToday;
-}
+/**
+ * Hardcoded to the 2 matches relevant right now, instead of fetching TxLINE's
+ * full fixture list — that list was mostly unrelated friendlies burying the
+ * one match this whole app is built around. "Final" has no real fixtureId
+ * yet (winner of the live match isn't decided), so it's shown but disabled
+ * until that's known — matches the bracket's "TBD" placeholder.
+ */
+const MATCH_OPTIONS = [
+  { fixtureId: "18241006", label: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England vs 🇦🇷 Argentina — Semi-final", disabled: false },
+  { fixtureId: "", label: "🏆 Final — TBD", disabled: true },
+];
 
 export function WagerFlowModal({
   open,
@@ -29,10 +34,7 @@ export function WagerFlowModal({
   selfAddress: string | null;
 }) {
   const { proposeWager } = useConquestActions();
-  const [fixtures, setFixtures] = useState<TxLineFixture[]>([]);
-  const [fixturesLoading, setFixturesLoading] = useState(true);
-  const [fixturesError, setFixturesError] = useState<string | null>(null);
-  const [fixtureId, setFixtureId] = useState<string>("");
+  const [fixtureId, setFixtureId] = useState<string>(MATCH_OPTIONS[0].fixtureId);
   const [predictionType, setPredictionType] = useState<PredictionType>(PredictionType.MatchWinner);
   const [predictedOutcome, setPredictedOutcome] = useState<number>(0);
   const [opponent, setOpponent] = useState<string>("");
@@ -40,26 +42,14 @@ export function WagerFlowModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    setFixturesLoading(true);
-    setFixturesError(null);
-    fetch("/api/txline/fixtures")
-      .then((res) => res.json())
-      .then((body: { data?: TxLineFixture[]; error?: string }) => {
-        if (body.error) throw new Error(body.error);
-        const upcoming = (body.data ?? []).filter(isUpcoming);
-        setFixtures(upcoming);
-        setFixtureId(upcoming[0]?.fixtureId ?? "");
-      })
-      .catch((e) => setFixturesError(e instanceof Error ? e.message : "Failed to load fixtures"))
-      .finally(() => setFixturesLoading(false));
-  }, [open]);
-
   if (!open) return null;
 
   const opponentOptions = players.filter((p) => p.pubkey !== selfAddress);
   const options = PREDICTION_OUTCOME_OPTIONS[predictionType];
+  // Only offer types scripts/resolve-live-match.ts actually knows how to
+  // settle — OverUnderGoals/BothTeamsScore/CustomProp hit its default case
+  // and would sit Locked forever, unresolved, if bet on tonight.
+  const selectableTypes = [PredictionType.MatchWinner, PredictionType.ExtraTime, PredictionType.Penalties];
 
   async function handleSubmit() {
     if (!fixtureId) {
@@ -98,25 +88,17 @@ export function WagerFlowModal({
 
         <div className="mb-3">
           <label className="mb-1 block text-xs text-neutral-500">Match</label>
-          {fixturesLoading ? (
-            <p className="text-sm text-neutral-500">Loading fixtures...</p>
-          ) : fixturesError ? (
-            <p className="text-sm text-red-400">{fixturesError}</p>
-          ) : fixtures.length === 0 ? (
-            <p className="text-sm text-neutral-500">No upcoming fixtures.</p>
-          ) : (
-            <select
-              value={fixtureId}
-              onChange={(e) => setFixtureId(e.target.value)}
-              className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100"
-            >
-              {fixtures.map((f) => (
-                <option key={f.fixtureId} value={f.fixtureId}>
-                  {f.competition}: {f.homeTeam} vs {f.awayTeam} — {new Date(f.kickoffTime).toLocaleString()}
-                </option>
-              ))}
-            </select>
-          )}
+          <select
+            value={fixtureId}
+            onChange={(e) => setFixtureId(e.target.value)}
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100"
+          >
+            {MATCH_OPTIONS.map((m) => (
+              <option key={m.fixtureId || "tbd"} value={m.fixtureId} disabled={m.disabled}>
+                {m.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mb-3">
@@ -129,7 +111,7 @@ export function WagerFlowModal({
             }}
             className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100"
           >
-            {Object.values(PredictionType).map((pt) => (
+            {selectableTypes.map((pt) => (
               <option key={pt} value={pt}>
                 {PREDICTION_TYPE_LABELS[pt]}
               </option>

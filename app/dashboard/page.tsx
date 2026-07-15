@@ -6,7 +6,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { getRoomsForWalletAction } from "@/app/actions";
+import { getAllRoomsAction, getRoomsForWalletAction } from "@/app/actions";
+import { BrowseRoomsList } from "@/components/BrowseRoomsList";
 import { RoomList } from "@/components/RoomList";
 import { WalletAddressBadge } from "@/components/WalletAddressBadge";
 import { useConquestActions } from "@/lib/use-conquest-actions";
@@ -16,6 +17,7 @@ export default function DashboardPage() {
   const { ready, authenticated, logout } = usePrivy();
   const { walletAddress, createRoom } = useConquestActions();
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [joinAddress, setJoinAddress] = useState("");
@@ -29,8 +31,11 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!walletAddress) return;
     setLoading(true);
-    getRoomsForWalletAction(walletAddress)
-      .then(setRooms)
+    Promise.all([getRoomsForWalletAction(walletAddress), getAllRoomsAction()])
+      .then(([mine, all]) => {
+        setRooms(mine);
+        setAllRooms(all);
+      })
       .finally(() => setLoading(false));
   }, [walletAddress]);
 
@@ -111,9 +116,18 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section>
+        <section className="mb-8">
           <h2 className="mb-3 text-lg font-semibold">Your Rooms</h2>
           {loading ? <p className="text-sm text-neutral-500">Loading...</p> : <RoomList rooms={rooms} />}
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold">Open Rooms</h2>
+          {loading ? (
+            <p className="text-sm text-neutral-500">Loading...</p>
+          ) : (
+            <BrowseRoomsList rooms={allRooms} myAddress={walletAddress} />
+          )}
         </section>
       </div>
     </main>

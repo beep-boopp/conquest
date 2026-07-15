@@ -6,7 +6,9 @@ import { ENGLAND_MIKU_IMAGE, MIKU_QUOTES, MIKU_TEAM_FLAGS, MIKU_TEAM_LABELS } fr
 import { useConquestActions } from "@/lib/use-conquest-actions";
 import { MikuPool, MikuTeam } from "@/types";
 
-function Flag({ team, className = "" }: { team: MikuTeam; className?: string }) {
+import { MikuPoolStats } from "./MikuPoolStats";
+
+export function Flag({ team, className = "" }: { team: MikuTeam; className?: string }) {
   return <span className={`fi fi-${MIKU_TEAM_FLAGS[team]} rounded-[2px] ${className}`} />;
 }
 
@@ -28,6 +30,7 @@ export function MikuCupCard({
   const { placeMikuBet } = useConquestActions();
   const [betting, setBetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showStats, setShowStats] = useState(false);
 
   const myBet = pool?.bettors.find((b) => b.address === activeAddress) ?? null;
   const alreadyBet = myBet !== null;
@@ -63,7 +66,18 @@ export function MikuCupCard({
       )}
       <div className="p-6">
         <div className="mb-1 flex items-center justify-between">
-          <div className="text-lg font-bold text-yellow-500">🏆 Miku Cup</div>
+          <div className="flex items-center gap-2">
+            <div className="text-lg font-bold text-yellow-500">🏆 Miku Cup</div>
+            {pool && (
+              <button
+                onClick={() => setShowStats((v) => !v)}
+                title="Pot breakdown"
+                className="rounded px-1.5 py-0.5 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+              >
+                📊
+              </button>
+            )}
+          </div>
           {currentHolder !== null && (
             <div className="flex items-center gap-1.5 text-sm text-neutral-300">
               {isResolved ? "Winner: " : "Leading: "}
@@ -74,6 +88,8 @@ export function MikuCupCard({
         {currentHolder !== null && (
           <p className="mb-3 text-sm italic text-neutral-400">Miku says: &ldquo;{MIKU_QUOTES[currentHolder]}&rdquo;</p>
         )}
+
+        {showStats && pool && <MikuPoolStats pool={pool} />}
 
         {isResolved ? (
           <p className="flex items-center gap-1.5 text-sm font-semibold text-neutral-100">

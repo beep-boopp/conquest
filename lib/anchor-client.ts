@@ -267,6 +267,19 @@ export async function fetchRoomsForPlayer(player: PublicKey): Promise<Room[]> {
     .filter((room) => room.players.some((p) => p.pubkey === player.toBase58()));
 }
 
+/**
+ * Every room on the program, regardless of membership — there's no
+ * invite/allowlist check in join_room (see programs/conquest-bet/src/
+ * instructions/join_room.rs), so "private rooms" only ever meant
+ * unlisted-by-default in the UI. This powers an explicit browse-and-join
+ * list instead of requiring invite links.
+ */
+export async function fetchAllRooms(): Promise<Room[]> {
+  const program = getReadOnlyProgram();
+  const entries = await program.account.room.all();
+  return entries.map((e) => toRoomView(e.publicKey, e.account as unknown as OnChainRoom));
+}
+
 // ---- Instructions: mirror programs/conquest-bet/src/instructions/*.rs ----
 
 /** Mirrors create_room. Returns the tx signature and the new room's address. */

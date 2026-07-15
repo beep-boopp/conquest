@@ -29,6 +29,10 @@ export async function getRoomAction(roomAddress: string): Promise<Room | null> {
   return client.fetchRoom(key);
 }
 
+export async function getAllRoomsAction(): Promise<Room[]> {
+  return client.fetchAllRooms();
+}
+
 export async function getWagersForRoomAction(roomAddress: string): Promise<Wager[]> {
   const key = tryParsePublicKey(roomAddress);
   if (!key) return [];
