@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 
 import { getRoomAction, getWagersForRoomAction } from "@/app/actions";
 import { RoomView } from "@/components/RoomView";
+import { WalletAddressBadge } from "@/components/WalletAddressBadge";
 import { useConquestActions } from "@/lib/use-conquest-actions";
-import { truncateAddress } from "@/lib/utils";
 import { Room, Wager } from "@/types";
 
 export default function RoomPage({ params }: { params: { roomAddress: string } }) {
@@ -54,7 +54,7 @@ export default function RoomPage({ params }: { params: { roomAddress: string } }
         <div className="mb-2 flex items-center justify-between">
           <h1 className="text-2xl font-bold">Room</h1>
           <div className="flex items-center gap-3 text-sm">
-            {walletAddress && <span className="text-neutral-400">{truncateAddress(walletAddress)}</span>}
+            {walletAddress && <WalletAddressBadge address={walletAddress} />}
             <button onClick={() => logout()} className="rounded border border-neutral-700 px-3 py-1 text-neutral-200 hover:bg-neutral-800">
               Log out
             </button>

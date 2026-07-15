@@ -8,8 +8,8 @@ import { useRouter } from "next/navigation";
 
 import { getRoomsForWalletAction } from "@/app/actions";
 import { RoomList } from "@/components/RoomList";
+import { WalletAddressBadge } from "@/components/WalletAddressBadge";
 import { useConquestActions } from "@/lib/use-conquest-actions";
-import { truncateAddress } from "@/lib/utils";
 import { Room } from "@/types";
 
 export default function DashboardPage() {
@@ -78,7 +78,7 @@ export default function DashboardPage() {
             </nav>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            {walletAddress && <span className="text-neutral-400">{truncateAddress(walletAddress)}</span>}
+            {walletAddress && <WalletAddressBadge address={walletAddress} />}
             <button onClick={() => logout()} className="rounded border border-neutral-700 px-3 py-1 text-neutral-200 hover:bg-neutral-800">
               Log out
             </button>

@@ -10,10 +10,10 @@ import { getGlobalPageDataAction, getMikuPoolAction } from "@/app/actions";
 import { BracketPanel } from "@/components/BracketPanel";
 import { MikuCupCard } from "@/components/MikuCupCard";
 import { MikuTimelinePanel } from "@/components/MikuTimelinePanel";
+import { WalletAddressBadge } from "@/components/WalletAddressBadge";
 import { BracketMatch } from "@/lib/bracket-data";
 import { MikuCustodyStep } from "@/lib/miku-content";
 import { useConquestActions } from "@/lib/use-conquest-actions";
-import { truncateAddress } from "@/lib/utils";
 import { MikuPool } from "@/types";
 
 export default function GlobalPage() {
@@ -73,7 +73,7 @@ export default function GlobalPage() {
             </nav>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            {walletAddress && <span className="text-neutral-400">{truncateAddress(walletAddress)}</span>}
+            {walletAddress && <WalletAddressBadge address={walletAddress} />}
             <button onClick={() => logout()} className="rounded border border-neutral-700 px-3 py-1 text-neutral-200 hover:bg-neutral-800">
               Log out
             </button>
