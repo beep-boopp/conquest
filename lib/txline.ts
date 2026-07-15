@@ -1,3 +1,4 @@
+import { MatchResult, parseMatchResult } from "@/lib/match-result";
 import { TxLineFixture } from "@/types";
 
 // Server-only module — only ever imported from app/api/txline/* route
@@ -77,6 +78,20 @@ export async function getScoresHistorical(fixtureId: string): Promise<unknown> {
   });
   if (!res.ok) throw new Error(`TxLINE scores historical fetch failed: ${res.status} ${await res.text()}`);
   return res.json();
+}
+
+/**
+ * Fetches and parses a fixture's real result for display (bracket/timeline
+ * enrichment) — returns null if the match hasn't started or has no score
+ * data yet, so callers can fall back to "upcoming"/"live" placeholders.
+ */
+export async function enrichFixture(fixtureId: number): Promise<MatchResult | null> {
+  try {
+    const raw = await getScoresSnapshot(String(fixtureId));
+    return parseMatchResult(raw as never);
+  } catch {
+    return null;
+  }
 }
 
 /** GET /api/odds/snapshot/{fixtureId}. See docs/txline-api-reference.md #8. */
